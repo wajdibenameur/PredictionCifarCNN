@@ -1,0 +1,123 @@
+<div class="prediction-container">
+  <h2 class="mb-4">Prédiction CIFAR-10</h2>
+  
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Sélection du modèle</h5>
+    </div>
+    <div class="card-body">
+      <select class="form-select" [(ngModel)]="selectedModel">
+        <option value="cifar10-cnn">CIFAR-10 CNN (Convolutional Neural Network)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Source de l'image</h5>
+    </div>
+    <div class="card-body">
+      <div class="btn-group mb-3" role="group">
+        <button type="button" class="btn" 
+                [class.btn-primary]="!useUrl"
+                [class.btn-outline-primary]="useUrl"
+                (click)="toggleInputMethod()">
+          Upload Fichier
+        </button>
+        <button type="button" class="btn"
+                [class.btn-primary]="useUrl"
+                [class.btn-outline-primary]="!useUrl"
+                (click)="toggleInputMethod()">
+          URL Image
+        </button>
+      </div>
+
+      <div *ngIf="!useUrl">
+        <div class="mb-3">
+          <input type="file" class="form-control" accept="image/*" 
+                 (change)="onFileSelected($event)" #fileInput>
+        </div>
+        
+        <div *ngIf="imagePreview" class="image-preview mb-3">
+          <img [src]="imagePreview" alt="Preview" class="img-thumbnail" style="max-height: 300px;">
+        </div>
+      </div>
+
+      <div *ngIf="useUrl">
+        <div class="mb-3">
+          <label for="imageUrl" class="form-label">URL de l'image</label>
+          <input type="url" class="form-control" id="imageUrl" 
+                 [(ngModel)]="imageUrl" placeholder="https://example.com/image.jpg">
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-danger">
+        {{ errorMessage }}
+      </div>
+
+      <button class="btn btn-success" (click)="onPredict()" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Lancer la prédiction</span>
+        <span *ngIf="isLoading">
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          Prédiction en cours...
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="predictionResult" class="card">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">Résultats de la prédiction</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <h4>Prédiction principale</h4>
+          <div class="alert" [class]="'alert-' + getClassColor(predictionResult.prediction)">
+            <h5 class="alert-heading">{{ predictionResult.prediction | titlecase }}</h5>
+            <p class="mb-0">Confiance: {{ predictionResult.confidence | percent:'1.2-2' }}</p>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <h4>Top 3 prédictions</h4>
+          <div class="list-group">
+            <div *ngFor="let pred of predictionResult.top_3" class="list-group-item">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">{{ pred.class | titlecase }}</h6>
+                <span>{{ pred.confidence | percent:'1.2-2' }}</span>
+              </div>
+              <div class="progress">
+                <div class="progress-bar" 
+                     [style.width.%]="pred.confidence * 100"
+                     [class]="'bg-' + getClassColor(pred.class)">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <h5>Toutes les probabilités</h5>
+        <div class="row">
+          <div *ngFor="let prob of predictionResult.all_probabilities | keyvalue" 
+               class="col-6 col-md-4 col-lg-3 mb-2">
+            <div class="card">
+              <div class="card-body p-2">
+                <small class="text-muted">{{ prob.key | titlecase }}</small>
+                <div class="progress" style="height: 5px;">
+                  <div class="progress-bar" 
+                       [style.width.%]="prob.value * 100"
+                       [class]="'bg-' + getClassColor(prob.key)">
+                  </div>
+                </div>
+                <small>{{ prob.value | percent:'1.1-1' }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
