@@ -12,11 +12,11 @@ spring:
   application:
     name: cifar10-backend
 
-  # Database Configuration (MySQL)
+spring:
   datasource:
     url: jdbc:mysql://localhost:3306/cifar10_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
-    username: root
-    password:       # <--- mettre ton mot de passe MySQL ici
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD} 
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # H2 Database (for testing)
@@ -47,10 +47,9 @@ spring:
       mode: always
       data-locations: classpath:import.sql
 
-# JWT Configuration
 app:
   jwt:
-    secret: yourSuperSecretJWTKeyChangeThisInProductionMakeItVeryLongAndSecure
+    secret: ${APP_JWT_SECRET}
     expiration-ms: 86400000 # 24 hours
 
 # CIFAR10 Model Configuration
