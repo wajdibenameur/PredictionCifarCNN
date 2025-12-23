@@ -6,6 +6,7 @@ import com.cifar10.model.User;
 import com.cifar10.repository.RoleRepository;
 import com.cifar10.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -24,28 +25,58 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder encoder;
 
+    /* ========= ADMIN ========= */
+    @Value("${APP_ADMIN_USERNAME:admin}")
+    private String adminUsername;
+
+    @Value("${APP_ADMIN_EMAIL:admin@cifar10.com}")
+    private String adminEmail;
+
+    @Value("${APP_ADMIN_PASSWORD:admin123}")
+    private String adminPassword;
+
+    /* ========= USER ========= */
+    @Value("${APP_USER_USERNAME:user}")
+    private String userUsername;
+
+    @Value("${APP_USER_EMAIL:user@cifar10.com}")
+    private String userEmail;
+
+    @Value("${APP_USER_PASSWORD:user123}")
+    private String userPassword;
+
     @Override
     public void run(String... args) {
-        if (roleRepository.count() == 0) {
-            // Création des rôles
-            Role userRole = roleRepository.save(new Role(ERole.ROLE_USER));
-            Role adminRole = roleRepository.save(new Role(ERole.ROLE_ADMIN));
 
-            // Création de l'admin
-            if (!userRepository.existsByUsername("admin")) {
-                User admin = new User("admin", "admin@cifar10.com", encoder.encode("admin123"));
-                admin.setRoles(Set.of(adminRole));
-                userRepository.save(admin);
-            }
+        /* ===== Création des rôles (idempotent) ===== */
+        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                .orElseGet(() -> roleRepository.save(new Role(ERole.ROLE_USER)));
 
-            // Création du user
-            if (!userRepository.existsByUsername("user")) {
-                User user = new User("user", "user@cifar10.com", encoder.encode("user123"));
-                user.setRoles(Set.of(userRole));
-                userRepository.save(user);
-            }
+        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+                .orElseGet(() -> roleRepository.save(new Role(ERole.ROLE_ADMIN)));
 
-            System.out.println("Users initialized: admin/admin123, user/user123");
+        /* ===== Admin ===== */
+        if (!userRepository.existsByUsername(adminUsername)) {
+            User admin = new User(
+                    adminUsername,
+                    adminEmail,
+                    encoder.encode(adminPassword)
+            );
+            admin.setRoles(Set.of(adminRole));
+            userRepository.save(admin);
         }
+
+        /* ===== User ===== */
+        if (!userRepository.existsByUsername(userUsername)) {
+            User user = new User(
+                    userUsername,
+                    userEmail,
+                    encoder.encode(userPassword)
+            );
+            user.setRoles(Set.of(userRole));
+            userRepository.save(user);
+        }
+
+        System.out.println("✔ Default users initialized");
     }
 }
