@@ -1,0 +1,73 @@
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# Spring Configuration
+spring:
+  application:
+    name: cifar10-backend
+
+  # Database Configuration (MySQL)
+  datasource:
+    url: jdbc:mysql://localhost:3306/cifar10_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: root
+    password:       # <--- mettre ton mot de passe MySQL ici
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # H2 Database (for testing)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+    show-sql: true
+
+  # File Upload
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  # SQL initialization
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:import.sql
+
+# JWT Configuration
+app:
+  jwt:
+    secret: yourSuperSecretJWTKeyChangeThisInProductionMakeItVeryLongAndSecure
+    expiration-ms: 86400000 # 24 hours
+
+# CIFAR10 Model Configuration
+cifar10:
+  model:
+    input-size: 32
+    classes: airplane,automobile,bird,cat,deer,dog,frog,horse,ship,truck
+    mean: 0.4914,0.4822,0.4465
+    std: 0.2023,0.1994,0.2010
+
+# Logging
+logging:
+  level:
+    com.cifar10: DEBUG
+    org.springframework.security: INFO
+    ai.djl: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+  file:
+    name: logs/cifar10.log
